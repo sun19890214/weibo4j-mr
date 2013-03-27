@@ -30,7 +30,7 @@ public class TestReadTopic {
     for (String regex : topicList.keySet()) {
       Pattern pattern = Pattern.compile(regex);
       Matcher matcher = pattern.matcher(tweet);
-      if (matcher.matches()) {
+      if (matcher.find()) {
        find = true;
        Assert.assertEquals(topic, topicList.get(regex));
       }

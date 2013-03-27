@@ -18,7 +18,8 @@ public class TestConstructStatusList {
   public void testConstructStatusList() throws IOException, JSONException, WeiboException {
     BufferedReader reader = new BufferedReader(new FileReader("resource/status.txt"));
     String statuses = null;
-    while ((statuses = reader.readLine()) != null) {      List<Status> statusList = constructStatusList(statuses);
+    while ((statuses = reader.readLine()) != null) {      
+      List<Status> statusList = constructStatusList(statuses);
       for (Status status : statusList) {
         System.out.println(status);
       }

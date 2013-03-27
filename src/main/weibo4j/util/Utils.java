@@ -1,0 +1,246 @@
+package weibo4j.util;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.Path;
+
+import weibo4j.model.Status;
+import weibo4j.model.WeiboException;
+import weibo4j.org.json.JSONArray;
+import weibo4j.org.json.JSONException;
+
+public class Utils {
+
+  public static Map<String, String> loadTopics(Configuration conf, boolean test) throws IOException, FileNotFoundException {
+    Map<String, String> topicList = new LinkedHashMap<String, String>();
+    String filePath = "resource/topic.txt";
+    if (!test) {
+      Path[] localPaths = DistributedCache.getLocalCacheFiles(conf);
+      if (null == localPaths || 0 == localPaths.length) {
+        throw new FileNotFoundException("Distributed cached file not found");
+      }
+      filePath = localPaths[0].toString(); 
+    }
+    File localFile = new File(filePath);
+    BufferedReader reader = new BufferedReader(new FileReader(localFile));
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+      String[] parts = line.split("\t");
+      topicList.put(parts[1], parts[0]); 
+    } 
+    reader.close();
+    return topicList;
+  }
+
+
+  public static List<Status> constructStatusList(String statuses) throws JSONException, WeiboException {
+    List<Status> statusList = new ArrayList<Status>();
+    JSONArray statusArray = new JSONArray(statuses);
+    for (int i = 0; i < statusArray.length(); i++) {
+      statusList.add(new Status(statusArray.getJSONObject(i)));
+    }
+    return statusList;
+  }
+
+  public static boolean refreshToken()
+  {
+    GetAccessToken wc = new GetAccessToken();      
+    try {
+      wc.run();
+      System.out.println("refresh token finished");
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+      return false;
+    } catch (ParseException e) {
+      return false;
+      // TODO Auto-generated catch block
+      //e.printStackTrace();
+    }
+    return true;
+  }
+
+  public static boolean write(String filepath,String str)
+  {
+    OutputStreamWriter osw = null;
+    FileOutputStream fileos = null;
+    BufferedWriter bw = null;
+    try
+    {
+      fileos = new FileOutputStream(filepath, true);
+      osw = new OutputStreamWriter(fileos,"GBK");
+      bw = new BufferedWriter(osw);
+      if(!str.equals(""))
+      {
+        bw.append(str);
+        bw.newLine();
+      }
+      bw.close();
+      osw.close();
+      fileos.close();
+      return true;
+    }
+    catch (IOException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return false;
+    } 
+  }
+  public static boolean write(String filepath, List<String> list)
+  {
+    OutputStreamWriter osw = null;
+    FileOutputStream fileos = null;
+    BufferedWriter bw = null;
+    try
+    {
+      fileos = new FileOutputStream(filepath, true);
+      osw = new OutputStreamWriter(fileos,"GBK");
+      bw = new BufferedWriter(osw);
+      for (String s : list)
+      {
+        if(!s.equals(""))
+        {
+          bw.append(s);
+          bw.newLine();
+        }
+      }
+      bw.close();
+      osw.close();
+      fileos.close();
+      return true;
+    }
+    catch (IOException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return false;
+    }
+  }
+  public static boolean write(String filepath, List<String> list,boolean isAppend,String encode)
+  {
+    OutputStreamWriter osw = null;
+    FileOutputStream fileos = null;
+    BufferedWriter bw = null;
+    try
+    {
+      fileos = new FileOutputStream(filepath, isAppend);
+      osw = new OutputStreamWriter(fileos,encode);
+      bw = new BufferedWriter(osw);
+      for (String s : list)
+      {
+        if(!s.equals(""))
+        {
+          bw.append(s);
+          bw.newLine();
+        }
+      }
+      bw.close();
+      osw.close();
+      fileos.close();
+      return true;
+    }
+    catch (IOException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return false;
+    }
+  }
+  public static boolean write(String filepath, Map resultMap)
+  {
+    Iterator iterator = resultMap.entrySet().iterator();
+    ArrayList<String> recordList = new ArrayList<String>();
+    List<String> resultList = new ArrayList<String>();
+    while (iterator.hasNext())
+    {
+      Map.Entry entry = (Map.Entry<String,Long>) iterator.next();
+      resultList.add(entry.getKey()+"\t"+entry.getValue());
+      //write(".\\data\\twitterHashtag",key+"\t"+value);
+    }
+    OutputStreamWriter osw = null;
+    FileOutputStream fileos = null;
+    BufferedWriter bw = null;
+    try
+    {
+      fileos = new FileOutputStream(filepath, true);
+      osw = new OutputStreamWriter(fileos,"GBK");
+      bw = new BufferedWriter(osw);
+      for (String s : resultList)
+      {
+        if(!s.equals(""))
+        {
+          bw.append(s);
+          bw.newLine();
+        }
+      }
+      bw.close();
+      osw.close();
+      fileos.close();
+      return true;
+    }
+    catch (IOException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return false;
+    }
+  }
+  public static String removeEol(String text)
+  {
+    if(text == null)
+    {
+      return text;
+    }
+    if(text.contains("\n"))
+    {
+      text = text.replaceAll("\n", "");
+    }
+    if(text.contains("\r"))
+    {
+      text = text.replaceAll("\r", "");
+    }
+    if(text.contains("\n\r"))
+    {
+      text = text.replaceAll("\n", "\n\r");
+    }
+    if(text.contains("\r\n"))
+    {
+      text = text.replaceAll("\r\n", "");
+    }
+    return text;
+  }
+  public static boolean deleteFile(File file)
+  {
+    try
+    {
+      if (file.exists())
+      {
+        file.delete();
+        System.out.println("delete" +file.getName());
+        return true;
+      }
+    }
+    catch (Exception e)
+    {
+      System.out.println("delete failed" + file.getName());
+      e.printStackTrace();
+    }
+    return false;
+  }
+}
