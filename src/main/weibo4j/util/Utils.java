@@ -25,19 +25,10 @@ import weibo4j.org.json.JSONArray;
 import weibo4j.org.json.JSONException;
 
 public class Utils {
-
-  public static Map<String, String> loadTopics(Configuration conf, boolean test) throws IOException, FileNotFoundException {
+ 
+  public static Map<String, String> loadTopics(String path) throws IOException, FileNotFoundException {
     Map<String, String> topicList = new LinkedHashMap<String, String>();
-    String filePath = "resource/topic.txt";
-    if (!test) {
-      Path[] localPaths = DistributedCache.getLocalCacheFiles(conf);
-      if (null == localPaths || 0 == localPaths.length) {
-        throw new FileNotFoundException("Distributed cached file not found");
-      }
-      filePath = localPaths[0].toString(); 
-    }
-    File localFile = new File(filePath);
-    BufferedReader reader = new BufferedReader(new FileReader(localFile));
+   BufferedReader reader = new BufferedReader(new FileReader(new File(path)));
     String line = null;
     while ((line = reader.readLine()) != null) {
       String[] parts = line.split("\t");

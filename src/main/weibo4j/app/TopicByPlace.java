@@ -3,15 +3,15 @@ package weibo4j.app;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -19,6 +19,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Mapper.Context;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -27,32 +28,38 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import weibo4j.model.Status;
+import weibo4j.model.User;
+import weibo4j.util.Provinces;
 import weibo4j.util.Utils;
 
 /*
- *  trend of topic by day
+ * trend of topic by place (province)
  */
 
-public class TopicByTime implements Tool {
-  private static Map<String, String> topicList = new HashMap<String, String>();
-  private Configuration conf;
+public class TopicByPlace implements Tool {
+  private static Map<String, String> topicList = new LinkedHashMap<String, String>();
+  private Configuration conf;  
   
+  /**
+   * @param args
+   * @throws Exception 
+   */
   public static void main(String[] args) throws Exception {
-    System.exit(ToolRunner.run(new TopicByTime(), args));    
+    System.exit(ToolRunner.run(new TopicByPlace(), args));
   }
 
   @Override
   public int run(String[] args) throws Exception {
     Job job = new Job();
-    job.setJarByClass(TopicByTime.class);
-    job.setJobName("TopicByTime");
+    job.setJarByClass(TopicByPlace.class);
+    job.setJobName("TopicByPlace");
 
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
 
-    job.setMapperClass(TimeMapper.class);
-    job.setReducerClass(TimeReducer.class);
-    job.setCombinerClass(TimeReducer.class);
+    job.setMapperClass(PlaceMapper.class);
+    job.setReducerClass(PlaceReducer.class);
+    job.setCombinerClass(PlaceReducer.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     job.setOutputFormatClass(TextOutputFormat.class);
@@ -67,33 +74,39 @@ public class TopicByTime implements Tool {
     }
     FileOutputFormat.setOutputPath(job, outputPath);
 
-    TimeMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
-
+    PlaceMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
     job.waitForCompletion(true);
 
     return 0;
+
   }
-
-  protected static class TimeMapper extends Mapper<LongWritable, Text, Text, Text> {
-    SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+  
+  protected static class PlaceMapper extends Mapper<LongWritable, Text, Text, Text> {
     List<Status> statusList = new ArrayList<Status>();
+    boolean test = false;
     private static DistributedCacheClass cache = new DistributedCacheClass();
-
-    public TimeMapper() {  
+    
+    public PlaceMapper() {  
     }
     
-    protected TimeMapper(DistributedCacheClass dcc) {
+    protected PlaceMapper(DistributedCacheClass dcc) {
       cache = dcc;
     }
     
+    
+    
     @Override
     public void setup(Context context) throws IOException, InterruptedException {
+      if (test) {
+        topicList = Utils.loadTopics("resource/test/topic_by_place.txt");
+      } else {
         Path[] localPaths = cache.getLocalCacheFiles(context.getConfiguration());
         if (null == localPaths || 0 == localPaths.length) {
           throw new FileNotFoundException("Distributed cached file not found");
         }
         topicList = Utils.loadTopics(localPaths[0].toString());
       }
+    }
 
     @Override
     public void map(LongWritable key, Text value, Context context) 
@@ -106,8 +119,9 @@ public class TopicByTime implements Tool {
             String text = Utils.removeEol(status.getText()); // get content, and get rid of \t, \n
             for (String pattern : topicList.keySet()) {
               if (Pattern.compile(pattern).matcher(text).find()) {
-                String time = inputFormat.format(status.getCreatedAt());
-                context.write(new Text(topicList.get(pattern) + "\t" + time), new Text(String.valueOf(1)));
+                User user = status.getUser();
+                int province = user.getProvince();
+                context.write(new Text(topicList.get(pattern) + "\t" + Provinces.getNameFromId(province)), new Text(String.valueOf(1)));
               }
             }
           }   
@@ -116,19 +130,21 @@ public class TopicByTime implements Tool {
         e.printStackTrace();
       }
     }
+
   }
-
-  protected static class TimeReducer extends Reducer<Text, Text, Text, Text> {
-
+  
+  protected static class PlaceReducer extends Reducer<Text, Text, Text, Text> {
     @Override
     public void reduce(Text key, Iterable<Text> values, Context context) 
         throws IOException, InterruptedException {
       int count = 0;
-      for (Iterator<Text> iterator = values.iterator();iterator.hasNext();) {
+      for (Iterator<Text> iterator = values.iterator(); iterator.hasNext();) {
         iterator.next();
         count++;
       }
+
       context.write(key, new Text(String.valueOf(count)));
+
     }
   }
 
@@ -141,6 +157,5 @@ public class TopicByTime implements Tool {
   public void setConf(Configuration conf) {
     this.conf = conf;
   }
-
 
 }
