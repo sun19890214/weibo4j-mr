@@ -42,8 +42,6 @@ public class TestTopicByTime {
     BufferedReader reader = new BufferedReader(new FileReader("resource/test/status_by_time.txt"));
     status = reader.readLine(); 
     reader.close();
-    
-    
   }
 
 

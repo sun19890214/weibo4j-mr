@@ -13,6 +13,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
@@ -33,8 +35,8 @@ public class TestTopicByPlace {
   public void setUp() throws IOException {
     DistributedCacheClass dcc = Mockito.mock(DistributedCacheClass.class);
     when(dcc.getLocalCacheFiles(any(Configuration.class))).thenReturn(new Path[]{new Path("resource/test/topic_by_place.txt")});
-    PlaceMapper mapper = new PlaceMapper(dcc);
-    PlaceReducer reducer = new PlaceReducer();
+    Mapper mapper = new PlaceMapper(dcc);
+    Reducer reducer = new PlaceReducer();
     mapDriver = MapDriver.newMapDriver(mapper);
     reduceDriver = ReduceDriver.newReduceDriver(reducer);
     mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);

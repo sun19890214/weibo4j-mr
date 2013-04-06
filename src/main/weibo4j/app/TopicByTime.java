@@ -25,8 +25,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
 
 import weibo4j.model.Status;
+import weibo4j.model.WeiboException;
+import weibo4j.org.json.JSONException;
 import weibo4j.util.Utils;
 
 /*
@@ -34,9 +37,11 @@ import weibo4j.util.Utils;
  */
 
 public class TopicByTime implements Tool {
+  private static final Logger logger = Logger.getLogger(TopicByTime.class);
+
   private static Map<String, String> topicList = new HashMap<String, String>();
-  private Configuration conf;
-  
+  private Configuration conf = null;
+
   public static void main(String[] args) throws Exception {
     System.exit(ToolRunner.run(new TopicByTime(), args));    
   }
@@ -67,6 +72,7 @@ public class TopicByTime implements Tool {
     }
     FileOutputFormat.setOutputPath(job, outputPath);
 
+    conf = job.getConfiguration();
     TimeMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
 
     job.waitForCompletion(true);
@@ -81,41 +87,43 @@ public class TopicByTime implements Tool {
 
     public TimeMapper() {  
     }
-    
+
     protected TimeMapper(DistributedCacheClass dcc) {
       cache = dcc;
     }
-    
+
     @Override
     public void setup(Context context) throws IOException, InterruptedException {
-        Path[] localPaths = cache.getLocalCacheFiles(context.getConfiguration());
-        if (null == localPaths || 0 == localPaths.length) {
-          throw new FileNotFoundException("Distributed cached file not found");
-        }
-        topicList = Utils.loadTopics(localPaths[0].toString());
+      Path[] localPaths = cache.getLocalCacheFiles(context.getConfiguration());
+      if (null == localPaths || 0 == localPaths.length) {
+        throw new FileNotFoundException("Distributed cached file not found");
       }
+      topicList = Utils.loadTopics(localPaths[0].toString());
+    }
 
     @Override
     public void map(LongWritable key, Text value, Context context) 
         throws IOException, InterruptedException {
       try {
         statusList = Utils.constructStatusList(value.toString());
-
-        if (statusList != null) {
-          for(Status status : statusList) {
-            String text = Utils.removeEol(status.getText()); // get content, and get rid of \t, \n
-            for (String pattern : topicList.keySet()) {
-              if (Pattern.compile(pattern).matcher(text).find()) {
-                String time = inputFormat.format(status.getCreatedAt());
-                context.write(new Text(topicList.get(pattern) + "\t" + time), new Text(String.valueOf(1)));
-              }
-            }
-          }   
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (JSONException e) {
+        logger.error(e.getMessage());
+      } catch (WeiboException e) {
+        logger.error(e.getMessage());
       }
-    }
+
+      if (statusList != null) {
+        for(Status status : statusList) {
+          String text = Utils.removeEol(status.getText()); // get content, and get rid of \t, \n
+          for (String pattern : topicList.keySet()) {
+            if (Pattern.compile(pattern).matcher(text).find()) {
+              String time = inputFormat.format(status.getCreatedAt());
+              context.write(new Text(topicList.get(pattern) + "\t" + time), new Text(String.valueOf(1)));
+            }
+          }
+        }   
+      }
+    } 
   }
 
   protected static class TimeReducer extends Reducer<Text, Text, Text, Text> {

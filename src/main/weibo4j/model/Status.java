@@ -38,13 +38,14 @@ public class Status extends WeiboResponse implements java.io.Serializable {
   private int mlevel;
   private Visible visible;
 
+  private JSONObject json;
   public Status() {
 
   }
 
   public Status(Response res) throws WeiboException {
     super(res);
-    JSONObject json = res.asJSONObject();
+    json = res.asJSONObject();
     constructJson(json);
   }
 
@@ -105,16 +106,21 @@ public class Status extends WeiboResponse implements java.io.Serializable {
   }
 
   public Status(JSONObject json) throws WeiboException, JSONException {
+    this.json = json;
     constructJson(json);
   }
 
   public Status(String str) throws WeiboException, JSONException {
     // StatusStream uses this constructor
     super();
-    JSONObject json = new JSONObject(str);
+    json = new JSONObject(str);
     constructJson(json);
   }
 
+  public JSONObject getJSONObject() {
+    return json;
+  }
+  
   public User getUser() {
     return user;
   }

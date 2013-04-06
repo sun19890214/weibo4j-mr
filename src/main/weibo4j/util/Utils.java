@@ -15,14 +15,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.Path;
-
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
 import weibo4j.org.json.JSONArray;
 import weibo4j.org.json.JSONException;
+import weibo4j.org.json.JSONObject;
 
 public class Utils {
  
@@ -46,6 +43,10 @@ public class Utils {
       statusList.add(new Status(statusArray.getJSONObject(i)));
     }
     return statusList;
+  }
+  
+  public static Status constructStatus(String status) throws WeiboException, JSONException {
+    return new Status(status);
   }
 
   public static boolean refreshToken()
