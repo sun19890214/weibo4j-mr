@@ -26,13 +26,11 @@ import org.apache.log4j.Logger;
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
 import weibo4j.org.json.JSONException;
+import weibo4j.util.Provinces;
 import weibo4j.util.Utils;
 
-
-/* simple wordcount program to calculate emotion words in weibo */
-
-public class Emotion implements Tool {
-  private static final Logger logger = Logger.getLogger(Emotion.class);
+public class EmotionByPlace implements Tool {
+  private static final Logger logger = Logger.getLogger(EmotionByPlace.class);
   private Configuration conf = null;
 
 
@@ -46,13 +44,13 @@ public class Emotion implements Tool {
   public int run(String[] args) throws Exception {
     Job job = new Job();
     job.setJarByClass(Emotion.class);
-    job.setJobName("emotions");
+    job.setJobName("EmotionByPlace");
 
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
 
-    job.setMapperClass(EmotionMapper.class);
-    job.setReducerClass(EmotionReducer.class);
+    job.setMapperClass(EmotionByPlaceMapper.class);
+    job.setReducerClass(EmotionByPlaceReducer.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     job.setOutputFormatClass(TextOutputFormat.class);
@@ -68,21 +66,21 @@ public class Emotion implements Tool {
     FileOutputFormat.setOutputPath(job, outputPath);
 
     conf = job.getConfiguration();
-    EmotionMapper.cache.addCacheFile(new URI("/home/manuzhang/emotions.txt#emotions.txt"), conf);
+    EmotionByPlaceMapper.cache.addCacheFile(new URI("/home/manuzhang/emotions.txt#emotions.txt"), conf);
 
     job.waitForCompletion(true);
 
     return 0;
   }
 
-  protected static class EmotionMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
+  protected static class EmotionByPlaceMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
     private static DistributedCacheClass cache = new DistributedCacheClass();
     private Map<String, String> emotionList = null;
 
-    public EmotionMapper() {
+    public EmotionByPlaceMapper() {
     }
 
-    protected EmotionMapper(DistributedCacheClass dcc) {
+    protected EmotionByPlaceMapper(DistributedCacheClass dcc) {
       cache = dcc;
     }
 
@@ -110,10 +108,11 @@ public class Emotion implements Tool {
       if (statusList != null) {
         for(Status status : statusList) {
           String text = Utils.removeEol(status.getText()); // get content, and get rid of \t, \n
+          String province = Provinces.getNameFromId(status.getUser().getProvince());
           for (String keyword : emotionList.keySet()) {
             int index = text.indexOf(keyword);
             while (index != -1) {
-              context.write(new Text(keyword), new LongWritable(1));
+              context.write(new Text(keyword + "\t" + province), new LongWritable(1));
               text = text.substring(index + 1);
               index = text.indexOf(keyword);
             }
@@ -124,7 +123,7 @@ public class Emotion implements Tool {
 
   }
 
-  protected static class EmotionReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
+  protected static class EmotionByPlaceReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
 
     @Override
     protected void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
