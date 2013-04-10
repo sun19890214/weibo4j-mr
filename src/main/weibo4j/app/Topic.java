@@ -48,7 +48,6 @@ import com.google.gson.Gson;
 
 public class Topic implements Tool {
 
-  private static Map<String, String> topicList = new LinkedHashMap<String, String>();
   private Configuration conf = new Configuration();
   private static final Logger logger = LoggerFactory.getLogger(Topic.class);
 
@@ -90,22 +89,8 @@ public class Topic implements Tool {
   }
 
   protected static class TopicMapper extends Mapper<LongWritable, Text, Text, Text> {
-    /*   ArrayList<String> tempList = new ArrayList<String>();
-    SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    String endTime = null;    
-    String time = null;
-    String text = null;
-    String rtText = null;
-    Status rtStatus = null;
-    boolean isConPicLink;
-    boolean isConURL;
-    private static String separator = "|#|";
-     */
-
-    List<Status> statusList = new ArrayList<Status>();
     private static DistributedCacheClass cache = new DistributedCacheClass();
-
+    private static Map<String, String> topicList = new LinkedHashMap<String, String>();
 
     public static final String COUNT = "count";
     public static final String COMMENTS_COUNT = "comments_count";
@@ -133,6 +118,7 @@ public class Topic implements Tool {
     @Override
     public void map(LongWritable key, Text value, Context context) 
         throws IOException, InterruptedException {
+      List<Status> statusList = null;
       try {
         statusList = Utils.constructStatusList(value.toString());
 

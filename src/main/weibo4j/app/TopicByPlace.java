@@ -24,6 +24,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.log4j.Logger;
 
 import weibo4j.model.Status;
 import weibo4j.model.User;
@@ -35,9 +36,9 @@ import weibo4j.util.Utils;
  */
 
 public class TopicByPlace implements Tool {
-  private static Map<String, String> topicList = new LinkedHashMap<String, String>();
+  private static final Logger logger = Logger.getLogger(TopicByPlace.class);
   private Configuration conf;  
-  
+
   /**
    * @param args
    * @throws Exception 
@@ -79,39 +80,34 @@ public class TopicByPlace implements Tool {
     return 0;
 
   }
-  
+
   protected static class PlaceMapper extends Mapper<LongWritable, Text, Text, Text> {
-    List<Status> statusList = new ArrayList<Status>();
-    boolean test = false;
     private static DistributedCacheClass cache = new DistributedCacheClass();
-    
+    private static Map<String, String> topicList = new LinkedHashMap<String, String>();
+
     public PlaceMapper() {  
     }
-    
+
     protected PlaceMapper(DistributedCacheClass dcc) {
       cache = dcc;
     }
-    
-    
-    
+
+
+
     @Override
     public void setup(Context context) throws IOException, InterruptedException {
-      if (test) {
-        topicList = Utils.loadTopics("resource/test/topic_by_place.txt");
-      } else {
-        Path[] localPaths = cache.getLocalCacheFiles(context.getConfiguration());
-        if (null == localPaths || 0 == localPaths.length) {
-          throw new FileNotFoundException("Distributed cached file not found");
-        }
-        topicList = Utils.loadTopics(localPaths[0].toString());
+      Path[] localPaths = cache.getLocalCacheFiles(context.getConfiguration());
+      if (null == localPaths || 0 == localPaths.length) {
+        throw new FileNotFoundException("Distributed cached file not found");
       }
+      topicList = Utils.loadTopics(localPaths[0].toString());
     }
 
     @Override
     public void map(LongWritable key, Text value, Context context) 
         throws IOException, InterruptedException {
       try {
-        statusList = Utils.constructStatusList(value.toString());
+        List<Status> statusList = Utils.constructStatusList(value.toString());
 
         if (statusList != null) {
           for(Status status : statusList) {
@@ -126,12 +122,12 @@ public class TopicByPlace implements Tool {
           }   
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        logger.error(e.getMessage());
       }
     }
 
   }
-  
+
   protected static class PlaceReducer extends Reducer<Text, Text, Text, Text> {
     @Override
     public void reduce(Text key, Iterable<Text> values, Context context) 

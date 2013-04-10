@@ -22,10 +22,11 @@ import weibo4j.org.json.JSONException;
 import weibo4j.org.json.JSONObject;
 
 public class Utils {
- 
-  public static Map<String, String> loadTopics(String path) throws IOException, FileNotFoundException {
+  public static final String[] EMOTIONS = {"happy", "sad", "angry", "afraid", "surprised", "hatred", "others"};
+
+  public static Map<String, String> loadTopics(String path) throws IOException {
     Map<String, String> topicList = new LinkedHashMap<String, String>();
-   BufferedReader reader = new BufferedReader(new FileReader(new File(path)));
+    BufferedReader reader = new BufferedReader(new FileReader(new File(path)));
     String line = null;
     while ((line = reader.readLine()) != null) {
       String[] parts = line.split("\t");
@@ -35,6 +36,24 @@ public class Utils {
     return topicList;
   }
 
+  public static Map<String, String> loadEmotions(String path) throws IOException {
+    Map<String, String> emotionList = new LinkedHashMap<String, String>();
+    BufferedReader reader = new BufferedReader(new FileReader(new File(path)));
+    String line;
+    while ((line = reader.readLine()) != null) {
+      String[] parts = line.split(",");
+      assert(parts.length == EMOTIONS.length);
+      for (int i = 0; i < parts.length; i++) {
+        if (parts[i].length() != 0) {
+          emotionList.put(parts[i], EMOTIONS[i]);
+        }
+      }
+
+    }
+
+    reader.close();
+    return emotionList;
+  }
 
   public static List<Status> constructStatusList(String statuses) throws JSONException, WeiboException {
     List<Status> statusList = new ArrayList<Status>();
@@ -44,10 +63,7 @@ public class Utils {
     }
     return statusList;
   }
-  
-  public static Status constructStatus(String status) throws WeiboException, JSONException {
-    return new Status(status);
-  }
+
 
   public static boolean refreshToken()
   {
