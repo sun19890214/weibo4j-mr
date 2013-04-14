@@ -75,6 +75,7 @@ public class TopicByPlace implements Tool {
 
     conf = job.getConfiguration();
     PlaceMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
+    PlaceMapper.cache.addCacheFile(new URI("/home/manuzhang/provinces.json#provinces.json"), conf);
     job.waitForCompletion(true);
 
     return 0;
@@ -97,10 +98,11 @@ public class TopicByPlace implements Tool {
     @Override
     public void setup(Context context) throws IOException, InterruptedException {
       Path[] localPaths = cache.getLocalCacheFiles(context.getConfiguration());
-      if (null == localPaths || 0 == localPaths.length) {
-        throw new FileNotFoundException("Distributed cached file not found");
+      if (null == localPaths || localPaths.length <= 1) {
+        throw new FileNotFoundException("Not all distributed cached files could be found");
       }
       topicList = Utils.loadTopics(localPaths[0].toString());
+      Provinces.loadJSON(localPaths[1].toString());
     }
 
     @Override

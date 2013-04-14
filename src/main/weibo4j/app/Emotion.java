@@ -49,7 +49,7 @@ public class Emotion implements Tool {
     job.setJobName("emotions");
 
     job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(Text.class);
+    job.setOutputValueClass(LongWritable.class);
 
     job.setMapperClass(EmotionMapper.class);
     job.setReducerClass(EmotionReducer.class);

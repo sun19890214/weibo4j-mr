@@ -34,7 +34,9 @@ public class TestEmotionByPlace {
   @Before
   public void setUp() throws IOException {
     DistributedCacheClass dcc = Mockito.mock(DistributedCacheClass.class);
-    when(dcc.getLocalCacheFiles(any(Configuration.class))).thenReturn(new Path[]{new Path("resource/test/emotions.txt")});
+    when(dcc.getLocalCacheFiles(any(Configuration.class))).thenReturn(
+        new Path[]{new Path("resource/test/emotions.txt"),
+                   new Path("resource/provinces.json")});
     Mapper mapper = new EmotionByPlaceMapper(dcc);
     Reducer reducer = new EmotionByPlaceReducer();
     mapDriver = MapDriver.newMapDriver(mapper);
