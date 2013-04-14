@@ -36,7 +36,7 @@ public class TestTopicByPlace {
     DistributedCacheClass dcc = Mockito.mock(DistributedCacheClass.class);
     when(dcc.getLocalCacheFiles(any(Configuration.class))).thenReturn(
         new Path[]{new Path("resource/test/topic_by_place.txt"),
-                   new Path("resource/provinces.json")});
+                   new Path("resource/test/provinces.json")});
     Mapper mapper = new PlaceMapper(dcc);
     Reducer reducer = new PlaceReducer();
     mapDriver = MapDriver.newMapDriver(mapper);

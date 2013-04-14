@@ -22,10 +22,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import weibo4j.app.EmotionByPlace.EmotionByPlaceMapper;
-import weibo4j.app.EmotionByPlace.EmotionByPlaceReducer;
+import weibo4j.app.TopicByEmotion.EmotionMapper;
+import weibo4j.app.TopicByEmotion.EmotionReducer;
 
-public class TestEmotionByPlace {
+public class TestTopicByEmotion {
   MapDriver<LongWritable, Text, Text, LongWritable> mapDriver;
   ReduceDriver<Text, LongWritable, Text, LongWritable> reduceDriver;
   MapReduceDriver<LongWritable, Text, Text, LongWritable, Text, LongWritable> mapReduceDriver;
@@ -35,14 +35,15 @@ public class TestEmotionByPlace {
   public void setUp() throws IOException {
     DistributedCacheClass dcc = Mockito.mock(DistributedCacheClass.class);
     when(dcc.getLocalCacheFiles(any(Configuration.class))).thenReturn(
-        new Path[]{new Path("resource/test/emotions.txt"),
-                   new Path("resource/provinces.json")});
-    Mapper mapper = new EmotionByPlaceMapper(dcc);
-    Reducer reducer = new EmotionByPlaceReducer();
+        new Path[]{
+            new Path("resource/test/topic_by_emotion.txt"),
+            new Path("resource/test/emotions.txt")});
+    Mapper mapper = new EmotionMapper(dcc);
+    Reducer reducer = new EmotionReducer();
     mapDriver = MapDriver.newMapDriver(mapper);
     reduceDriver = ReduceDriver.newReduceDriver(reducer);
     mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
-    BufferedReader reader = new BufferedReader(new FileReader("resource/test/status_emotion.txt"));
+    BufferedReader reader = new BufferedReader(new FileReader("resource/test/status_by_emotion.txt"));
     status = reader.readLine(); 
     reader.close();
   }
@@ -51,8 +52,8 @@ public class TestEmotionByPlace {
   public void testMapper() {
     mapDriver.withInput(new LongWritable(), new Text(status))
              // the output position should match exactly
-             .withOutput(new Text("开心\t甘肃"), new LongWritable(1))
-             .withOutput(new Text("开心\t甘肃"), new LongWritable(1))
+             .withOutput(new Text("心情\t开心"), new LongWritable(1))
+             .withOutput(new Text("心情\t开心"), new LongWritable(1))
              .runTest();
   }
 
@@ -62,15 +63,19 @@ public class TestEmotionByPlace {
     values1.add(new LongWritable(1));
     values1.add(new LongWritable(1));
     
-    reduceDriver.withInput(new Text("开心\t甘肃"), values1)
-                .withOutput(new Text("开心\t甘肃"), new LongWritable(2))
+    reduceDriver.withInput(new Text("心情\t开心"), values1)
+                .withOutput(new Text("心情\t开心"), new LongWritable(2))
                 .runTest();
   }
   
   @Test
   public void testMapReduce() {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
-    mapReduceDriver.addOutput(new Text("开心\t甘肃"), new LongWritable(2));
+    mapReduceDriver.addOutput(new Text("心情\t开心"), new LongWritable(2));
     mapReduceDriver.runTest();
   }
+
+  
+  
+  
 }
