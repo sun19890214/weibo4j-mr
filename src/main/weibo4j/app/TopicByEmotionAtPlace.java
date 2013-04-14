@@ -46,7 +46,7 @@ public class TopicByEmotionAtPlace implements Tool {
   public int run(String[] args) throws Exception {
     Job job = new Job();
     job.setJarByClass(TopicByEmotionAtPlace.class);
-    job.setJobName("EmotionByPlace");
+    job.setJobName("TopicByEmotionAtPlace");
 
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(LongWritable.class);
@@ -123,7 +123,7 @@ public class TopicByEmotionAtPlace implements Tool {
             for (String keyword : emotionList.keySet()) {
               int index = text.indexOf(keyword);
               while (index != -1) {
-                context.write(new Text(pattern + "\t" +keyword + "\t" + province), new LongWritable(1));
+                context.write(new Text(topicList.get(pattern) + "\t" +keyword + "\t" + province), new LongWritable(1));
                 text = text.substring(index + 1);
                 index = text.indexOf(keyword);
               }

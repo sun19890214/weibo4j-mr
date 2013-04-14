@@ -79,7 +79,7 @@ public class TopicByTime implements Tool {
   }
 
   protected static class TimeMapper extends Mapper<LongWritable, Text, Text, Text> {
-    SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static DistributedCacheClass cache = new DistributedCacheClass();
     private static Map<String, String> topicList = new HashMap<String, String>();
 

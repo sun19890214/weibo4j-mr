@@ -3,6 +3,7 @@ package weibo4j.app;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,18 +29,17 @@ import org.apache.log4j.Logger;
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
 import weibo4j.org.json.JSONException;
+import weibo4j.util.Provinces;
 import weibo4j.util.Utils;
 
+public class TopicByEmotionWithTime implements Tool {
 
-/* simple wordcount program to calculate emotion words in weibo */
-
-public class TopicByEmotion implements Tool {
-  private static final Logger logger = Logger.getLogger(TopicByEmotion.class);
+  private static final Logger logger = Logger.getLogger(TopicByEmotionWithTime.class);
   private Configuration conf = null;
 
 
   public static void main(String[] args) throws Exception {
-    System.exit(ToolRunner.run(new TopicByEmotion(), args));
+    System.exit(ToolRunner.run(new TopicByEmotionWithTime(), args));
   }
 
 
@@ -47,14 +47,14 @@ public class TopicByEmotion implements Tool {
   @Override
   public int run(String[] args) throws Exception {
     Job job = new Job();
-    job.setJarByClass(TopicByEmotion.class);
-    job.setJobName("TopicByEmotion");
+    job.setJarByClass(TopicByEmotionWithTime.class);
+    job.setJobName("TopicByEmotionWithTime");
 
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(LongWritable.class);
 
-    job.setMapperClass(EmotionMapper.class);
-    job.setReducerClass(EmotionReducer.class);
+    job.setMapperClass(EmotionWithTimeMapper.class);
+    job.setReducerClass(EmotionWithTimeReducer.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     job.setOutputFormatClass(TextOutputFormat.class);
@@ -70,24 +70,23 @@ public class TopicByEmotion implements Tool {
     FileOutputFormat.setOutputPath(job, outputPath);
 
     conf = job.getConfiguration();
-
-    EmotionMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
-    EmotionMapper.cache.addCacheFile(new URI("/home/manuzhang/emotions.txt#emotions.txt"), conf);
-
+    EmotionWithTimeMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
+    EmotionWithTimeMapper.cache.addCacheFile(new URI("/home/manuzhang/emotions.txt#emotions.txt"), conf);
     job.waitForCompletion(true);
 
     return 0;
   }
 
-  protected static class EmotionMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
+  protected static class EmotionWithTimeMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
+    private static SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static DistributedCacheClass cache = new DistributedCacheClass();
     private static Map<String, String> emotionList = new LinkedHashMap<String, String>();
     private static Map<String, String> topicList = new LinkedHashMap<String, String>();
 
-    public EmotionMapper() {
+    EmotionWithTimeMapper() {
     }
 
-    protected EmotionMapper(DistributedCacheClass dcc) {
+    protected EmotionWithTimeMapper(DistributedCacheClass dcc) {
       cache = dcc;
     }
 
@@ -95,8 +94,9 @@ public class TopicByEmotion implements Tool {
     public void setup(Context context) throws IOException {
       Path[] localPaths = cache.getLocalCacheFiles(context.getConfiguration());
       if (null == localPaths || localPaths.length <= 1) {
-        throw new FileNotFoundException("Not all distributed cached file could be found");
+        throw new FileNotFoundException("Not all distributed cached files could be found");
       }
+
       topicList = Utils.loadTopics(localPaths[0].toString());
       emotionList = Utils.loadEmotions(localPaths[1].toString());
     }
@@ -113,17 +113,18 @@ public class TopicByEmotion implements Tool {
       }
 
       if (statusList != null) {
-        for(Status status : statusList) {
+        for (Status status : statusList) {
           String text = Utils.removeEol(status.getText()); // get content, and get rid of \t, \n
           for (String pattern : topicList.keySet()) {
             if (!Pattern.compile(pattern).matcher(text).find()) {
               continue;
             }
             
+            String time = inputFormat.format(status.getCreatedAt());
             for (String keyword : emotionList.keySet()) {
               int index = text.indexOf(keyword);
               while (index != -1) {
-                context.write(new Text(topicList.get(pattern) + "\t" + keyword), new LongWritable(1));
+                context.write(new Text(topicList.get(pattern) + "\t" +keyword + "\t" + time), new LongWritable(1));
                 text = text.substring(index + 1);
                 index = text.indexOf(keyword);
               }
@@ -135,7 +136,7 @@ public class TopicByEmotion implements Tool {
 
   }
 
-  protected static class EmotionReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
+  protected static class EmotionWithTimeReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
 
     @Override
     protected void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
