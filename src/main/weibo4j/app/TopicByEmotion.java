@@ -123,7 +123,7 @@ public class TopicByEmotion implements Tool {
             for (String keyword : emotionList.keySet()) {
               int index = text.indexOf(keyword);
               while (index != -1) {
-                context.write(new Text(topicList.get(pattern) + "\t" + keyword), new LongWritable(1));
+                context.write(new Text(topicList.get(pattern) + "\t" + keyword + "\t" + emotionList.get(keyword)), new LongWritable(1));
                 text = text.substring(index + 1);
                 index = text.indexOf(keyword);
               }

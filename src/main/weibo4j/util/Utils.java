@@ -22,7 +22,7 @@ import weibo4j.org.json.JSONException;
 import weibo4j.org.json.JSONObject;
 
 public class Utils {
-  public static final String[] EMOTIONS = {"happy", "sad", "angry", "afraid", "surprised", "hatred", "others"};
+  public static final String[] EMOTIONS = {"快乐", "悲伤", "愤怒", "恐惧", "惊奇", "厌恶", "其他"};
 
   public static Map<String, String> loadTopics(String path) throws IOException {
     Map<String, String> topicList = new LinkedHashMap<String, String>();
@@ -57,7 +57,16 @@ public class Utils {
 
   public static List<Status> constructStatusList(String statuses) throws JSONException, WeiboException {
     List<Status> statusList = new ArrayList<Status>();
-    JSONArray statusArray = new JSONArray(statuses);
+    JSONArray statusArray = new JSONArray();
+    // JSONObject
+    if (statuses.startsWith("{")) {
+      JSONObject statusObject = new JSONObject(statuses);
+      statusArray = statusObject.getJSONArray("statuses"); 
+    } else if (statuses.startsWith("[")) {
+      statusArray = new JSONArray(statuses);
+    } else {
+      throw new JSONException("Neither JSONObject nor JSONArray");
+    }
     for (int i = 0; i < statusArray.length(); i++) {
       statusList.add(new Status(statusArray.getJSONObject(i)));
     }

@@ -124,7 +124,7 @@ public class TopicByEmotionWithTime implements Tool {
             for (String keyword : emotionList.keySet()) {
               int index = text.indexOf(keyword);
               while (index != -1) {
-                context.write(new Text(topicList.get(pattern) + "\t" +keyword + "\t" + time), new LongWritable(1));
+                context.write(new Text(topicList.get(pattern) + "\t" + emotionList.get(keyword) + "\t" + time), new LongWritable(1));
                 text = text.substring(index + 1);
                 index = text.indexOf(keyword);
               }

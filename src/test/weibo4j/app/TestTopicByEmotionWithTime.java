@@ -52,8 +52,8 @@ public class TestTopicByEmotionWithTime {
   public void testMapper() {
     mapDriver.withInput(new LongWritable(), new Text(status))
              // the output position should match exactly
-             .withOutput(new Text("心情\t开心\t2013-04-10"), new LongWritable(1))
-             .withOutput(new Text("心情\t开心\t2013-04-10"), new LongWritable(1))
+             .withOutput(new Text("心情\t快乐\t2013-04-10"), new LongWritable(1))
+             .withOutput(new Text("心情\t快乐\t2013-04-10"), new LongWritable(1))
              .runTest();
   }
 
@@ -63,15 +63,15 @@ public class TestTopicByEmotionWithTime {
     values1.add(new LongWritable(1));
     values1.add(new LongWritable(1));
     
-    reduceDriver.withInput(new Text("心情\t开心\t2013-04-10"), values1)
-                .withOutput(new Text("心情\t开心\t2013-04-10"), new LongWritable(2))
+    reduceDriver.withInput(new Text("心情\t快乐\t2013-04-10"), values1)
+                .withOutput(new Text("心情\t快乐\t2013-04-10"), new LongWritable(2))
                 .runTest();
   }
   
   @Test
   public void testMapReduce() {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
-    mapReduceDriver.addOutput(new Text("心情\t开心\t2013-04-10"), new LongWritable(2));
+    mapReduceDriver.addOutput(new Text("心情\t快乐\t2013-04-10"), new LongWritable(2));
     mapReduceDriver.runTest();
   }
 
