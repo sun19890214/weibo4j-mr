@@ -23,14 +23,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import weibo4j.app.Topic.TopicMapper;
-import weibo4j.app.Topic.TopicReducer;
+import weibo4j.app.TopicProof.TopicProofMapper;
+import weibo4j.app.TopicProof.TopicProofReducer;
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
 import weibo4j.org.json.JSONException;
 import weibo4j.util.Utils;
 
-import com.google.gson.Gson;
+/* refer to TopicProof.java */
 
 public class TestTopicCount {
   MapDriver<LongWritable, Text, Text, Text> mapDriver;
@@ -43,8 +43,8 @@ public class TestTopicCount {
   public void setUp() throws IOException, URISyntaxException, JSONException, WeiboException {
     DistributedCacheClass dcc = Mockito.mock(DistributedCacheClass.class);
     when(dcc.getLocalCacheFiles(any(Configuration.class))).thenReturn(new Path[]{new Path("resource/test/topic_by_count.txt")});
-    Mapper mapper = new TopicMapper(dcc);
-    Reducer reducer = new TopicReducer();
+    Mapper mapper = new TopicProofMapper(dcc);
+    Reducer reducer = new TopicProofReducer();
     mapDriver = MapDriver.newMapDriver(mapper);
     reduceDriver = ReduceDriver.newReduceDriver(reducer);
     mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
@@ -54,7 +54,7 @@ public class TestTopicCount {
     reader.close();
   }
 
-
+  
   @Test
   public void testMapper() throws JSONException, WeiboException {
     String json0 = statusList.get(0).getJSONObject().toString();
@@ -73,63 +73,38 @@ public class TestTopicCount {
 
   @Test
   public void testReducer() {
-    int[] indices = {0, 7};
     List<Text> values = new ArrayList<Text>();
-    for (int index : indices) {
-      values.add(new Text(statusList.get(index).getJSONObject().toString()));
-    }
-
+    values.add(new Text(statusList.get(0).getJSONObject().toString()));
+    values.add(new Text(statusList.get(7).getJSONObject().toString()));
+    
     reduceDriver.withInput(new Text("湖人"), values)
-    .withOutput(new Text("湖人"), new Text(produceOutput(indices)))
+    .withOutput(new Text("湖人"), new Text("2\t67\t74\t"
+        + statusList.get(0).getText() + "\t"
+        + statusList.get(7).getText() + "\t"
+        + statusList.get(0).getText() + "\t"
+        + statusList.get(7).getText() 
+        ))
     .runTest();
   }
 
   @Test
   public void testMapReduce() {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
-    mapReduceDriver.addOutput(new Text("湖人"), new Text(produceOutput(new int[]{0, 7})));
-    mapReduceDriver.addOutput(new Text("足球"), new Text(produceOutput(new int[]{8, 9})));
+    mapReduceDriver.addOutput(new Text("湖人"), new Text("2\t67\t74\t"
+        + statusList.get(0).getText() + "\t"
+        + statusList.get(7).getText() + "\t"
+        + statusList.get(0).getText() + "\t"
+        + statusList.get(7).getText()
+        ));
+    mapReduceDriver.addOutput(new Text("足球"), new Text("2\t5\t8\t"
+        + statusList.get(9).getText() + "\t"
+        + statusList.get(8).getText() + "\t"
+        + statusList.get(8).getText() + "\t"
+        + statusList.get(9).getText()
+        ));
     mapReduceDriver.runTest();
   }
 
-  private String produceOutput(int[] indices) {
-    long totalComments = 0;
-    long totalReposts = 0;
-
-    String maxCommentsMid = null;
-    String maxRepostsMid = null;
-
-    long maxComments = 0;
-    long maxReposts = 0;
-
-    for (int index : indices) {
-      Status status = statusList.get(index);
-      int comments = status.getCommentsCount();
-      int reposts = status.getRepostsCount();
-      String mid = status.getMid();
-
-      totalComments += comments;
-      totalReposts += reposts;
-
-      if (comments > maxComments) {
-        maxComments = comments;
-        maxCommentsMid = mid; 
-      }
-
-      if (reposts > maxReposts) {
-        maxReposts = reposts;
-        maxRepostsMid = mid;
-      }
-    }
-
-    StringBuilder sb = new StringBuilder();
-    sb.append(indices.length + "\t");
-    sb.append(String.valueOf(totalComments) + "\t");
-    sb.append(String.valueOf(totalReposts) + "\t");
-    sb.append(maxCommentsMid + "\t");
-    sb.append(maxRepostsMid);
-    return sb.toString();
-  }
 
 
 }

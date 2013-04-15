@@ -4,8 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,18 +35,12 @@ import weibo4j.org.json.JSONException;
 import weibo4j.util.Utils;
 
 
-/*
- * we intend to generate statistics on topic.
- * 
- *  Input: a .txt file listing topics and their regex pattern
- *         a .txt file listing tweets in json format
- *  Output: a .csv file with the following schema
- *   topic tweet_count comment_count repost_count most_commets_mid most_reposts_mid
- * 
- */
+// this class is used to test the correctness of Topic.java
+// the Topic class fail unit tests because of mismatches of JSONObject outputs
+// this class will instead extract texts out of a JSONObject
+// other that that, Topic.java and TopicProof have the same logic
 
-public class Topic implements Tool {
-
+public class TopicProof implements Tool {
   private Configuration conf = new Configuration();
   private static final Logger logger = LoggerFactory.getLogger(Topic.class);
   
@@ -61,8 +53,8 @@ public class Topic implements Tool {
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
 
-    job.setMapperClass(TopicMapper.class);
-    job.setReducerClass(TopicReducer.class);
+    job.setMapperClass(TopicProofMapper.class);
+    job.setReducerClass(TopicProofReducer.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     job.setOutputFormatClass(TextOutputFormat.class);
@@ -78,7 +70,7 @@ public class Topic implements Tool {
     FileOutputFormat.setOutputPath(job, outputPath);
 
     conf = job.getConfiguration();
-    TopicMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
+    TopicProofMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
 
     job.waitForCompletion(true);
 
@@ -89,7 +81,7 @@ public class Topic implements Tool {
     System.exit(ToolRunner.run(new Topic(), args));
   }
 
-  protected static class TopicMapper extends Mapper<LongWritable, Text, Text, Text> {
+  protected static class TopicProofMapper extends Mapper<LongWritable, Text, Text, Text> {
     private static DistributedCacheClass cache = new DistributedCacheClass();
     private static Map<String, String> topicList = new LinkedHashMap<String, String>();
 
@@ -99,11 +91,11 @@ public class Topic implements Tool {
     public static final String TEXT = "text";
 
 
-    public TopicMapper() {
+    public TopicProofMapper() {
 
     }
 
-    public TopicMapper(DistributedCacheClass dcc) {
+    public TopicProofMapper(DistributedCacheClass dcc) {
       cache = dcc;
     }
 
@@ -146,7 +138,7 @@ public class Topic implements Tool {
   }
 
 
-  public static class TopicReducer extends Reducer<Text, Text, Text, Text> {
+  public static class TopicProofReducer extends Reducer<Text, Text, Text, Text> {
     private static SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
     @Override
@@ -201,13 +193,13 @@ public class Topic implements Tool {
       .append("\t")
       .append(String.valueOf(total_reposts_count))
       .append("\t")
-      .append(mostComments.getJSONObject().toString())
+      .append(mostComments.getText())
       .append("\t")
-      .append(mostReposts.getJSONObject().toString());
+      .append(mostReposts.getText());
       
       
        for (CommentsOrRepostsComparable statusComparable : ((TreeSet<CommentsOrRepostsComparable>) rank).descendingSet()) {
-         builder.append("\t" + statusComparable.getStatus().getJSONObject().toString());
+         builder.append("\t" + statusComparable.getStatus().getText());
        }
       
       context.write(key, new Text(builder.toString()));
@@ -302,4 +294,5 @@ public class Topic implements Tool {
     
     
   }
+
 }
