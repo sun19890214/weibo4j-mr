@@ -147,7 +147,6 @@ public class Topic implements Tool {
 
 
   public static class TopicReducer extends Reducer<Text, Text, Text, Text> {
-    private static SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
     @Override
     // output key => topic, output value => topic statistics over all tweets
@@ -205,9 +204,13 @@ public class Topic implements Tool {
       .append("\t")
       .append(mostReposts.getJSONObject().toString());
       
-      
+       int i = 0;
        for (CommentsOrRepostsComparable statusComparable : ((TreeSet<CommentsOrRepostsComparable>) rank).descendingSet()) {
+         if (i >= 10) {
+           break;
+         }
          builder.append("\t" + statusComparable.getStatus().getJSONObject().toString());
+         i++;
        }
       
       context.write(key, new Text(builder.toString()));

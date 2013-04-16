@@ -23,14 +23,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import weibo4j.app.TopicProof.TopicProofMapper;
-import weibo4j.app.TopicProof.TopicProofReducer;
+import weibo4j.app.TopicCount.TopicCountMapper;
+import weibo4j.app.TopicCount.TopicCountReducer;
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
 import weibo4j.org.json.JSONException;
 import weibo4j.util.Utils;
-
-/* refer to TopicProof.java */
 
 public class TestTopicCount {
   MapDriver<LongWritable, Text, Text, Text> mapDriver;
@@ -43,8 +41,8 @@ public class TestTopicCount {
   public void setUp() throws IOException, URISyntaxException, JSONException, WeiboException {
     DistributedCacheClass dcc = Mockito.mock(DistributedCacheClass.class);
     when(dcc.getLocalCacheFiles(any(Configuration.class))).thenReturn(new Path[]{new Path("resource/test/topic_by_count.txt")});
-    Mapper mapper = new TopicProofMapper(dcc);
-    Reducer reducer = new TopicProofReducer();
+    Mapper mapper = new TopicCountMapper(dcc);
+    Reducer reducer = new TopicCountReducer();
     mapDriver = MapDriver.newMapDriver(mapper);
     reduceDriver = ReduceDriver.newReduceDriver(reducer);
     mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
@@ -78,33 +76,17 @@ public class TestTopicCount {
     values.add(new Text(statusList.get(7).getJSONObject().toString()));
     
     reduceDriver.withInput(new Text("湖人"), values)
-    .withOutput(new Text("湖人"), new Text("2\t67\t74\t"
-        + statusList.get(0).getText() + "\t"
-        + statusList.get(7).getText() + "\t"
-        + statusList.get(0).getText() + "\t"
-        + statusList.get(7).getText() 
-        ))
+    .withOutput(new Text("湖人"), new Text("2\t67\t74"))
     .runTest();
   }
 
   @Test
   public void testMapReduce() {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
-    mapReduceDriver.addOutput(new Text("湖人"), new Text("2\t67\t74\t"
-        + statusList.get(0).getText() + "\t"
-        + statusList.get(7).getText() + "\t"
-        + statusList.get(0).getText() + "\t"
-        + statusList.get(7).getText()
-        ));
-    mapReduceDriver.addOutput(new Text("足球"), new Text("2\t5\t8\t"
-        + statusList.get(9).getText() + "\t"
-        + statusList.get(8).getText() + "\t"
-        + statusList.get(8).getText() + "\t"
-        + statusList.get(9).getText()
-        ));
+    mapReduceDriver.addOutput(new Text("湖人"), new Text("2\t67\t74"));
+    mapReduceDriver.addOutput(new Text("足球"), new Text("2\t5\t8"));
     mapReduceDriver.runTest();
   }
-
 
 
 }
