@@ -117,7 +117,8 @@ public class TopicCount implements Tool {
           String text = Utils.removeEol(status.getText()); // get content, and get rid of \t, \n
           for (String pattern : topicList.keySet()) {
             if (Pattern.compile(pattern).matcher(text).find()) {
-              context.write(new Text(topicList.get(pattern)), new Text(status.getJSONObject().toString()));
+              context.write(new Text(topicList.get(pattern)), new Text(
+                  status.getCommentsCount() + "\t" + status.getRepostsCount()));
               break;
             }
           }
@@ -143,20 +144,10 @@ public class TopicCount implements Tool {
       long max_reposts_count = 0;
       
       for (Iterator<Text> iterator = values.iterator(); iterator.hasNext();) {
-        Status status = null;
-        try {
-          status = new Status(iterator.next().toString());
-        } catch (JSONException e) {
-          logger.error(e.getMessage());
-        } catch (WeiboException e) {
-          logger.error(e.getMessage());
-        }
-
-        if (status != null) {
-          // by default, comments_count and reposts_count account for 50% respectively
-          
-          int cCount = status.getCommentsCount();
-          int rCount = status.getRepostsCount();
+          String[] commentsAndReposts = iterator.next().toString().split("\t");
+                           
+          int cCount = Integer.valueOf(commentsAndReposts[0]);
+          int rCount = Integer.valueOf(commentsAndReposts[1]);
           if (cCount > max_comments_count) {
             max_comments_count = cCount;
           }
@@ -167,7 +158,6 @@ public class TopicCount implements Tool {
           total_tweets_count++;
           total_comments_count += cCount;
           total_reposts_count += rCount; 
-        }
       }
       
       StringBuilder builder = new StringBuilder();

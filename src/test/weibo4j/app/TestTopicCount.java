@@ -55,25 +55,20 @@ public class TestTopicCount {
   
   @Test
   public void testMapper() throws JSONException, WeiboException {
-    String json0 = statusList.get(0).getJSONObject().toString();
-    String json7 = statusList.get(7).getJSONObject().toString();
-    String json8 = statusList.get(8).getJSONObject().toString();
-    String json9 = statusList.get(9).getJSONObject().toString();
-
     mapDriver.withInput(new LongWritable(), new Text(status))
     // the output position should match exactly
-    .withOutput(new Text("湖人"), new Text(json0))
-    .withOutput(new Text("湖人"), new Text(json7))
-    .withOutput(new Text("足球"), new Text(json8))
-    .withOutput(new Text("足球"), new Text(json9))
+    .withOutput(new Text("湖人"), new Text("45\t31"))
+    .withOutput(new Text("湖人"), new Text("22\t43"))
+    .withOutput(new Text("足球"), new Text("1\t5"))
+    .withOutput(new Text("足球"), new Text("4\t3"))
     .runTest();
   }
 
   @Test
   public void testReducer() {
     List<Text> values = new ArrayList<Text>();
-    values.add(new Text(statusList.get(0).getJSONObject().toString()));
-    values.add(new Text(statusList.get(7).getJSONObject().toString()));
+    values.add(new Text("45\t31"));
+    values.add(new Text("22\t43"));
     
     reduceDriver.withInput(new Text("湖人"), values)
     .withOutput(new Text("湖人"), new Text("2\t67\t74"))
