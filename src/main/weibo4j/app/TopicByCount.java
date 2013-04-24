@@ -31,21 +31,22 @@ import weibo4j.model.WeiboException;
 import weibo4j.org.json.JSONException;
 import weibo4j.util.Utils;
 
-public class TopicCount implements Tool {
+public class TopicByCount implements Tool {
   private Configuration conf = new Configuration();
-  private static final Logger logger = LoggerFactory.getLogger(Topic.class);
+  private static final Logger logger = LoggerFactory.getLogger(TopicByCount.class);
   
   @Override
   public int run(String[] args) throws Exception {
     Job job = new Job();
-    job.setJarByClass(Topic.class);
-    job.setJobName("topic");
+    job.setJarByClass(TopicByCount.class);
+    job.setJobName("TopicByCount");
 
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
 
-    job.setMapperClass(TopicCountMapper.class);
-    job.setReducerClass(TopicCountReducer.class);
+    job.setMapperClass(TopicByCountMapper.class);
+    job.setCombinerClass(TopicByCountReducer.class);
+    job.setReducerClass(TopicByCountReducer.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     job.setOutputFormatClass(TextOutputFormat.class);
@@ -61,7 +62,7 @@ public class TopicCount implements Tool {
     FileOutputFormat.setOutputPath(job, outputPath);
 
     conf = job.getConfiguration();
-    TopicCountMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
+    TopicByCountMapper.cache.addCacheFile(new URI("/home/manuzhang/topic.txt#topic.txt"), conf);
 
     job.waitForCompletion(true);
 
@@ -72,7 +73,7 @@ public class TopicCount implements Tool {
     System.exit(ToolRunner.run(new Topic(), args));
   }
 
-  protected static class TopicCountMapper extends Mapper<LongWritable, Text, Text, Text> {
+  protected static class TopicByCountMapper extends Mapper<LongWritable, Text, Text, Text> {
     private static DistributedCacheClass cache = new DistributedCacheClass();
     private static Map<String, String> topicList = new LinkedHashMap<String, String>();
 
@@ -82,11 +83,11 @@ public class TopicCount implements Tool {
     public static final String TEXT = "text";
 
 
-    public TopicCountMapper() {
+    public TopicByCountMapper() {
 
     }
 
-    public TopicCountMapper(DistributedCacheClass dcc) {
+    public TopicByCountMapper(DistributedCacheClass dcc) {
       cache = dcc;
     }
 
@@ -117,8 +118,9 @@ public class TopicCount implements Tool {
           String text = Utils.removeEol(status.getText()); // get content, and get rid of \t, \n
           for (String pattern : topicList.keySet()) {
             if (Pattern.compile(pattern).matcher(text).find()) {
-              context.write(new Text(topicList.get(pattern)), new Text(
-                  status.getCommentsCount() + "\t" + status.getRepostsCount()));
+              String counts = status.getCommentsCount() + "\t" + status.getRepostsCount();
+              System.out.println(counts);
+              context.write(new Text(topicList.get(pattern)), new Text(counts));
               break;
             }
           }
@@ -130,7 +132,7 @@ public class TopicCount implements Tool {
   }
 
 
-  public static class TopicCountReducer extends Reducer<Text, Text, Text, Text> {
+  public static class TopicByCountReducer extends Reducer<Text, Text, Text, Text> {
     
     @Override
     // output key => topic, output value => topic statistics over all tweets
@@ -167,7 +169,8 @@ public class TopicCount implements Tool {
       .append("\t")
       .append(String.valueOf(total_reposts_count));
       
-     
+     // logger.info(builder.toString());
+    //  System.out.println(builder.toString());
       context.write(key, new Text(builder.toString()));
     }
 }

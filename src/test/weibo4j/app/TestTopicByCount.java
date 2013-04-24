@@ -23,14 +23,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import weibo4j.app.TopicCount.TopicCountMapper;
-import weibo4j.app.TopicCount.TopicCountReducer;
+import weibo4j.app.TopicByCount.TopicByCountMapper;
+import weibo4j.app.TopicByCount.TopicByCountReducer;
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
 import weibo4j.org.json.JSONException;
 import weibo4j.util.Utils;
 
-public class TestTopicCount {
+public class TestTopicByCount {
   MapDriver<LongWritable, Text, Text, Text> mapDriver;
   ReduceDriver<Text, Text, Text, Text> reduceDriver;
   MapReduceDriver<LongWritable, Text, Text, Text, Text, Text> mapReduceDriver;
@@ -41,8 +41,8 @@ public class TestTopicCount {
   public void setUp() throws IOException, URISyntaxException, JSONException, WeiboException {
     DistributedCacheClass dcc = Mockito.mock(DistributedCacheClass.class);
     when(dcc.getLocalCacheFiles(any(Configuration.class))).thenReturn(new Path[]{new Path("resource/test/topic_by_count.txt")});
-    Mapper mapper = new TopicCountMapper(dcc);
-    Reducer reducer = new TopicCountReducer();
+    Mapper mapper = new TopicByCountMapper(dcc);
+    Reducer reducer = new TopicByCountReducer();
     mapDriver = MapDriver.newMapDriver(mapper);
     reduceDriver = ReduceDriver.newReduceDriver(reducer);
     mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
