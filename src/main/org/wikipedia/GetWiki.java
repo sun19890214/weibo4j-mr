@@ -14,28 +14,30 @@ public class GetWiki {
    * @throws InterruptedException 
    */
   public static void main(String[] args) throws IOException, InterruptedException {
-    BufferedReader reader = new BufferedReader(new FileReader("topic.txt"));
-    BufferedWriter raw = new BufferedWriter(new FileWriter("raw.txt", true));
-    BufferedWriter writer = new BufferedWriter(new FileWriter("intro.txt", true));
+    BufferedReader reader = new BufferedReader(new FileReader("resource/topic_mod.txt"));
+    BufferedWriter raw = new BufferedWriter(new FileWriter("resource/raw.txt", true));
+    BufferedWriter writer = new BufferedWriter(new FileWriter("resource/intro.txt", true));
     String line = null;
     
     Wiki wiki = new Wiki("zh.wikipedia.org");
    while ((line = reader.readLine()) != null) {
       String[] parts = line.split("\t");
-      System.out.println(parts[0]);
-      String content = wiki.getRenderedText(parts[0].trim());
+      String topic = parts[0];
+      String keyword = parts[1];      
+      System.out.println(topic + "\t" + keyword);
+      String content = wiki.getRenderedText(keyword.trim());
       int start = content.indexOf(">", content.indexOf("<p")) + 1;
       int end = content.indexOf("</p>");
       content = content.substring(start, end);
       raw.write(content + "\n");
-      content = content.replaceAll("<[^<>]*>", "");
-      writer.write(line + "\t" + content + "\n");
+      content = content.replaceAll("<[^<>]*>", "")
+    		           .replaceAll("\\[\\d+\\]", "");
+      writer.write(topic + "\t" + content + "\n");
       writer.flush();
       raw.flush();
-     // TimeUnit.SECONDS.sleep(30);
    }
   //  System.out.println(wiki.getRenderedText("谷歌退出中国"));
-
+    raw.close();
     writer.close();
     reader.close();
   }
