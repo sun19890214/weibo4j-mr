@@ -91,7 +91,7 @@ public class TopicByTimeAtPlace implements Tool {
   protected static class TimeAtPlaceMapper extends
       Mapper<LongWritable, Text, Text, LongWritable> {
     private static SimpleDateFormat inputFormat = new SimpleDateFormat(
-        "yyyy-MM-dd");
+        "yyyy-MM");
     private static DistributedCacheClass cache = new DistributedCacheClass();
     private static Map<String, String> topicList = new HashMap<String, String>();
 

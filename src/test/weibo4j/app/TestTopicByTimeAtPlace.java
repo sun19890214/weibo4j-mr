@@ -51,10 +51,10 @@ public class TestTopicByTimeAtPlace {
   public void testMapper() {
     mapDriver.withInput(new LongWritable(), new Text(status))
              // the output position should match exactly
-             .withOutput(new Text("历史\t2013-03-27\t广东"), new LongWritable(1))
-             .withOutput(new Text("女人\t2013-03-27\t福建"), new LongWritable(1))
-             .withOutput(new Text("历史\t2013-03-27\t广东"), new LongWritable(1))
-             .withOutput(new Text("女人\t2013-03-27\t广东"), new LongWritable(1))
+             .withOutput(new Text("历史\t2013-03\t广东"), new LongWritable(1))
+             .withOutput(new Text("女人\t2013-03\t福建"), new LongWritable(1))
+             .withOutput(new Text("历史\t2013-03\t广东"), new LongWritable(1))
+             .withOutput(new Text("女人\t2013-03\t广东"), new LongWritable(1))
              .runTest();
   }
 
@@ -64,17 +64,17 @@ public class TestTopicByTimeAtPlace {
     values1.add(new LongWritable(1));
     values1.add(new LongWritable(1));
     
-    reduceDriver.withInput(new Text("历史\t2013-03-27\t广东"), values1)
-                .withOutput(new Text("历史\t2013-03-27\t广东"), new LongWritable(2))
+    reduceDriver.withInput(new Text("历史\t2013-03\t广东"), values1)
+                .withOutput(new Text("历史\t2013-03\t广东"), new LongWritable(2))
                 .runTest();
   }
   
   @Test
   public void testMapReduce() {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
-    mapReduceDriver.addOutput(new Text("历史\t2013-03-27\t广东"), new LongWritable(2));
-    mapReduceDriver.addOutput(new Text("女人\t2013-03-27\t广东"), new LongWritable(1));
-    mapReduceDriver.addOutput(new Text("女人\t2013-03-27\t福建"), new LongWritable(1));
+    mapReduceDriver.addOutput(new Text("历史\t2013-03\t广东"), new LongWritable(2));
+    mapReduceDriver.addOutput(new Text("女人\t2013-03\t广东"), new LongWritable(1));
+    mapReduceDriver.addOutput(new Text("女人\t2013-03\t福建"), new LongWritable(1));
     mapReduceDriver.runTest();
   }
 
