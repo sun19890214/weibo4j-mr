@@ -49,7 +49,7 @@ public class TestTopicByEmotionWithTime {
   }
 
   @Test
-  public void testMapper() {
+  public void testMapper() throws IOException {
     mapDriver.withInput(new LongWritable(), new Text(status))
              // the output position should match exactly
              .withOutput(new Text("心情\t快乐\t2013-04-10"), new LongWritable(1))
@@ -58,7 +58,7 @@ public class TestTopicByEmotionWithTime {
   }
 
   @Test
-  public void testReducer() {
+  public void testReducer() throws IOException {
     List<LongWritable> values1 = new ArrayList<LongWritable>();
     values1.add(new LongWritable(1));
     values1.add(new LongWritable(1));
@@ -69,7 +69,7 @@ public class TestTopicByEmotionWithTime {
   }
   
   @Test
-  public void testMapReduce() {
+  public void testMapReduce() throws IOException {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
     mapReduceDriver.addOutput(new Text("心情\t快乐\t2013-04-10"), new LongWritable(2));
     mapReduceDriver.runTest();

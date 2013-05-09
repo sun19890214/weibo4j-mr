@@ -29,6 +29,7 @@ import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 import org.apache.log4j.Logger;
 
 import weibo4j.model.Configuration;
@@ -175,7 +176,7 @@ public class HttpClient implements java.io.Serializable {
     clientParams.setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
     client = new org.apache.commons.httpclient.HttpClient(clientParams,
         connectionManager);
-    Protocol myhttps = new Protocol("https", new MySSLSocketFactory(), 443);
+    Protocol myhttps = new Protocol("https", (SecureProtocolSocketFactory) new MySSLSocketFactory(), 443);
     Protocol.registerProtocol("https", myhttps);
     this.maxSize = maxSize;
     // 支持proxy

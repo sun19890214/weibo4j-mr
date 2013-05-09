@@ -26,8 +26,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
@@ -38,11 +37,11 @@ import weibo4j.util.Utils;
 // this class is used to test the correctness of Topic.java
 // the Topic class fail unit tests because of mismatches of JSONObject outputs
 // this class will instead extract texts out of a JSONObject
-// other that that, Topic.java and TopicProof have the same logic
+// other than that, Topic.java and TopicProof have the same logic
 
 public class TopicProof implements Tool {
   private Configuration conf = new Configuration();
-  private static final Logger logger = LoggerFactory.getLogger(Topic.class);
+  private static final Logger logger = Logger.getLogger(Topic.class);
   
   @Override
   public int run(String[] args) throws Exception {

@@ -27,7 +27,7 @@ public class TestLog {
 
 
   @Test
-  public void testMapper() {
+  public void testMapper() throws IOException {
     mapDriver.withInput(new LongWritable(), new Text());
     mapDriver.runTest();
  }

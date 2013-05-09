@@ -3,9 +3,6 @@ package weibo4j.app;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,8 +25,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
@@ -50,7 +47,7 @@ import weibo4j.util.Utils;
 public class Topic implements Tool {
 
   private Configuration conf = new Configuration();
-  private static final Logger logger = LoggerFactory.getLogger(Topic.class);
+  private static final Logger logger = Logger.getLogger(Topic.class);
   
   @Override
   public int run(String[] args) throws Exception {

@@ -6,10 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import sun.misc.Cache;
+import org.apache.log4j.Logger;
 
 import weibo4j.app.DistributedCacheClass;
 import weibo4j.org.json.JSONArray;
@@ -18,7 +15,7 @@ import weibo4j.org.json.JSONObject;
 
 public class Provinces {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Provinces.class);
+  private static final Logger LOG = Logger.getLogger(Provinces.class);
 
   private static Map<Integer, String> idToName = new HashMap<Integer, String>();
 

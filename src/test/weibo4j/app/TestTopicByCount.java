@@ -54,7 +54,7 @@ public class TestTopicByCount {
 
   
   @Test
-  public void testMapper() throws JSONException, WeiboException {
+  public void testMapper() throws JSONException, WeiboException, IOException {
     mapDriver.withInput(new LongWritable(), new Text(status))
     // the output position should match exactly
     .withOutput(new Text("湖人"), new Text("45\t31"))
@@ -65,7 +65,7 @@ public class TestTopicByCount {
   }
 
   @Test
-  public void testReducer() {
+  public void testReducer() throws IOException {
     List<Text> values = new ArrayList<Text>();
     values.add(new Text("45\t31"));
     values.add(new Text("22\t43"));
@@ -76,7 +76,7 @@ public class TestTopicByCount {
   }
 
   @Test
-  public void testMapReduce() {
+  public void testMapReduce() throws IOException {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
     mapReduceDriver.addOutput(new Text("湖人"), new Text("2\t67\t74"));
     mapReduceDriver.addOutput(new Text("足球"), new Text("2\t5\t8"));

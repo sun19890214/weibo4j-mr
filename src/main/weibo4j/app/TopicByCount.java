@@ -23,8 +23,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import weibo4j.model.Status;
 import weibo4j.model.WeiboException;
@@ -33,7 +32,7 @@ import weibo4j.util.Utils;
 
 public class TopicByCount implements Tool {
   private Configuration conf = new Configuration();
-  private static final Logger logger = LoggerFactory.getLogger(TopicByCount.class);
+  private static final Logger logger = Logger.getLogger(TopicByCount.class);
   
   @Override
   public int run(String[] args) throws Exception {

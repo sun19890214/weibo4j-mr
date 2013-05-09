@@ -56,7 +56,7 @@ public class TestTopic {
 
   
   @Test
-  public void testMapper() throws JSONException, WeiboException {
+  public void testMapper() throws JSONException, WeiboException, IOException {
     String json0 = statusList.get(0).getJSONObject().toString();
     String json7 = statusList.get(7).getJSONObject().toString();
     String json8 = statusList.get(8).getJSONObject().toString();
@@ -72,7 +72,7 @@ public class TestTopic {
   }
 
   @Test
-  public void testReducer() {
+  public void testReducer() throws IOException {
     List<Text> values = new ArrayList<Text>();
     values.add(new Text(statusList.get(0).getJSONObject().toString()));
     values.add(new Text(statusList.get(7).getJSONObject().toString()));
@@ -88,7 +88,7 @@ public class TestTopic {
   }
 
   @Test
-  public void testMapReduce() {
+  public void testMapReduce() throws IOException {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
     mapReduceDriver.addOutput(new Text("湖人"), new Text("2\t67\t74\t"
         + statusList.get(0).getText() + "\t"

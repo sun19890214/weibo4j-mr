@@ -48,7 +48,7 @@ public class TestTopicByPlace {
   }
 
   @Test
-  public void testMapper() {
+  public void testMapper() throws IOException {
     mapDriver.withInput(new LongWritable(), new Text(status))
              // the output position should match exactly
              .withOutput(new Text("应用\t广东"), new Text("1"))
@@ -59,7 +59,7 @@ public class TestTopicByPlace {
   }
 
   @Test
-  public void testReducer() {
+  public void testReducer() throws IOException {
     List<Text> values1 = new ArrayList<Text>();
     values1.add(new Text("1"));
     
@@ -69,7 +69,7 @@ public class TestTopicByPlace {
   }
   
   @Test
-  public void testMapReduce() {
+  public void testMapReduce() throws IOException {
     mapReduceDriver.withInput(new LongWritable(1), new Text(status));
     mapReduceDriver.addOutput(new Text("应用\t广东"), new Text("1"));
     mapReduceDriver.addOutput(new Text("应用\t湖南"), new Text("1"));
