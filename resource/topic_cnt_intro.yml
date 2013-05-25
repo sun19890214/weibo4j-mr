@@ -1,0 +1,32 @@
+python_preamble:
+- import: base64
+- import: re
+- import: google.appengine.ext.bulkload.transform
+- import: google.appengine.ext.bulkload.bulkloader_wizard
+- import: google.appengine.api.datastore
+- import: google.appengine.api.users
+
+transformers:
+
+- kind: topic_count_intro
+  connector: csv
+  connector_options:
+     import_options: 
+          dialect: excel-tab
+
+    - property: topic 
+      external_name: topic 
+
+    - property: tweets_count 
+      external_name: tweets_count 
+
+    - property: comments_count 
+      external_name: comments_count 
+
+    - property: reposts_count 
+      external_name: reposts_count 
+    
+    - property: intro 
+      external_name: intro 
+
+      
